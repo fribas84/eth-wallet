@@ -29,5 +29,11 @@ contract EtherWallet {
         return address(this).balance;
     }
 
+    // * receive function
+    receive() external payable {}
+
+    // * fallback function
+    fallback() external payable {}
+
     event withdrawResult(bool indexed success, address indexed receiver, uint indexed amount);
 }
