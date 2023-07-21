@@ -7,15 +7,10 @@
 const hre = require("hardhat");
 
 async function main() {
-;
-
-
   const etherWallet = await hre.ethers.deployContract("EtherWallet");
-
   await etherWallet.waitForDeployment();
-
   console.log(
-    `EtherWallet was deploted to  ${etherWallet.target}`
+    `EtherWallet was deployed to:  ${etherWallet.target}`
   );
 }
 

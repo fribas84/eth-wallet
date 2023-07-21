@@ -22,140 +22,168 @@ describe("Ether Wallet", function () {
       const { etherWallet, owner } = await loadFixture(deploy);
       expect(await etherWallet.owner()).to.equal(owner.address);
     });
-    it("Initial contract Balance shoule de 0", async () =>{
-        const{etherWallet} = await loadFixture(deploy);
-        expect(await etherWallet.balanceOf()).to.equal(0);
-    })
+    it("Initial contract Balance shoule de 0", async () => {
+      const { etherWallet } = await loadFixture(deploy);
+      expect(await etherWallet.balanceOf()).to.equal(0);
+    });
   });
 
   describe("Deposit", function () {
-    it("Owner can deposit and balance is the updated", async ()=>{
-        const { etherWallet, owner } = await loadFixture(deploy);
-        expect(await etherWallet.balanceOf()).to.equal(0);
-        const value = ethers.parseEther("5");
-        const options = {
-            value: value
-        }
-        await etherWallet.deposit(options);
-        expect(await etherWallet.balanceOf()).to.equal(value);
-    })
-    it("otherAccount can deposit and balance is the updated", async ()=>{
-        const { etherWallet,otherAccount } = await loadFixture(deploy);
-        expect(await etherWallet.balanceOf()).to.equal(0);
-        const value = ethers.parseEther("5");
-        const options = {
-            value: value
-        }
-        await etherWallet.connect(otherAccount).deposit(options);
-        expect(await etherWallet.balanceOf()).to.equal(value);
-    })
-
+    it("Owner can deposit and balance is the updated", async () => {
+      const { etherWallet, owner } = await loadFixture(deploy);
+      expect(await etherWallet.balanceOf()).to.equal(0);
+      const value = ethers.parseEther("5");
+      const options = {
+        value: value,
+      };
+      await etherWallet.deposit(options);
+      expect(await etherWallet.balanceOf()).to.equal(value);
+    });
+    it("otherAccount can deposit and balance is the updated", async () => {
+      const { etherWallet, otherAccount } = await loadFixture(deploy);
+      expect(await etherWallet.balanceOf()).to.equal(0);
+      const value = ethers.parseEther("5");
+      const options = {
+        value: value,
+      };
+      await etherWallet.connect(otherAccount).deposit(options);
+      expect(await etherWallet.balanceOf()).to.equal(value);
+    });
   });
 
   describe("Withdraw", function () {
-    it("owner can withdraw to this address", async ()=>{
-        const { etherWallet, owner } = await loadFixture(deploy);
-        const provider = hre.ethers.provider;
-        expect(await etherWallet.balanceOf()).to.equal(0);
-        const value = ethers.parseEther("10");
-       
-        //deposit
-        const options = {
-            value: value
-        }
-        await etherWallet.deposit(options);
-        const contractBalanceAfterDeposit = await etherWallet.balanceOf();
-        
-        expect(contractBalanceAfterDeposit).to.equal(value);
-        const accountBalanceAfterDeposit  = await provider.getBalance(owner.address);
-        
-        //Withdraw
-        await etherWallet.withdraw(owner.address,contractBalanceAfterDeposit);
-        const accountBalanceAfterWithdraw = await provider.getBalance(owner.address);
-        expect(accountBalanceAfterWithdraw).to.greaterThan(accountBalanceAfterDeposit);
+    it("owner can withdraw to this address", async () => {
+      const { etherWallet, owner } = await loadFixture(deploy);
+      const provider = hre.ethers.provider;
+      expect(await etherWallet.balanceOf()).to.equal(0);
+      const value = ethers.parseEther("10");
 
-        //Contract Balance should be 0
-        expect(await etherWallet.balanceOf()).to.equal(0);
-    })
-    it("owner can withdraw to otherAccount ", async ()=>{
-        const { etherWallet, owner, otherAccount} = await loadFixture(deploy);
-        const provider = hre.ethers.provider;
-        expect(await etherWallet.balanceOf()).to.equal(0);
-        const value = ethers.parseEther("10");
-        
-        //deposit
-        const options = {
-            value: value
-        }
-        await etherWallet.deposit(options);
+      //deposit
+      const options = {
+        value: value,
+      };
+      await etherWallet.deposit(options);
+      const contractBalanceAfterDeposit = await etherWallet.balanceOf();
 
-        const contractBalanceAfterDeposit = await etherWallet.balanceOf();
-        expect(contractBalanceAfterDeposit).to.equal(value);
-        const accountBalanceAfterDeposit  = await provider.getBalance(owner.address);
+      expect(contractBalanceAfterDeposit).to.equal(value);
+      const accountBalanceAfterDeposit = await provider.getBalance(
+        owner.address
+      );
 
-        
-        //withdraw 
-        const otherAccountBalanceBeforeWithdraw = await provider.getBalance(otherAccount.address);
+      //Withdraw
+      await etherWallet.withdraw(owner.address, contractBalanceAfterDeposit);
+      const accountBalanceAfterWithdraw = await provider.getBalance(
+        owner.address
+      );
+      expect(accountBalanceAfterWithdraw).to.greaterThan(
+        accountBalanceAfterDeposit
+      );
 
-        await etherWallet.withdraw(otherAccount.address,contractBalanceAfterDeposit);
+      //Contract Balance should be 0
+      expect(await etherWallet.balanceOf()).to.equal(0);
+    });
+    it("owner can withdraw to otherAccount ", async () => {
+      const { etherWallet, owner, otherAccount } = await loadFixture(deploy);
+      const provider = hre.ethers.provider;
+      expect(await etherWallet.balanceOf()).to.equal(0);
+      const value = ethers.parseEther("10");
 
-        const otherAccountBalanceAfterWithdraw = await provider.getBalance(otherAccount.address);
-        expect(otherAccountBalanceAfterWithdraw).to.greaterThan(otherAccountBalanceBeforeWithdraw);
-        const accountBalanceAfterWithdraw  = await provider.getBalance(owner.address);
-        
-        //due to gas cost, owner balance should be lower after the widthdraw
-        expect(accountBalanceAfterDeposit).to.greaterThan(accountBalanceAfterWithdraw);
-        
-        //Contract Balance should be 0
-        expect(await etherWallet.balanceOf()).to.equal(0);
-    })
+      //deposit
+      const options = {
+        value: value,
+      };
+      await etherWallet.deposit(options);
 
-    it("owner cannot withdraw more than balance", async ()=>{
-        const { etherWallet, owner, otherAccount} = await loadFixture(deploy);
-        const provider = hre.ethers.provider;
-        expect(await etherWallet.balanceOf()).to.equal(0);
-        const value = ethers.parseEther("10");
-        
-        //deposit
-        const options = {
-            value: value
-        }
-        await etherWallet.deposit(options);
+      const contractBalanceAfterDeposit = await etherWallet.balanceOf();
+      expect(contractBalanceAfterDeposit).to.equal(value);
+      const accountBalanceAfterDeposit = await provider.getBalance(
+        owner.address
+      );
 
-        const contractBalanceAfterDeposit = await etherWallet.balanceOf();
-        const withdrawAmount = ethers.parseEther("20")
-        
-        expect(contractBalanceAfterDeposit).to.lessThan(withdrawAmount);
-        expect(contractBalanceAfterDeposit).to.equal(value);
+      //withdraw
+      const otherAccountBalanceBeforeWithdraw = await provider.getBalance(
+        otherAccount.address
+      );
 
-        
-        //withdraw 
-        await expect(etherWallet.withdraw(owner.address,withdrawAmount)).to.revertedWith('Not enough funds');
-        // Contract Balance should not change after withdraw attempt
-        expect(await etherWallet.balanceOf()).to.equal(contractBalanceAfterDeposit);
-    })
+      await etherWallet.withdraw(
+        otherAccount.address,
+        contractBalanceAfterDeposit
+      );
 
-    it("otherAccount cannot withdraw ", async ()=>{
-        const { etherWallet, owner, otherAccount} = await loadFixture(deploy);
-        const provider = hre.ethers.provider;
-        expect(await etherWallet.balanceOf()).to.equal(0);
-        const value = ethers.parseEther("10");
-        
-        //deposit
-        const options = {
-            value: value
-        }
-        await etherWallet.deposit(options);
+      const otherAccountBalanceAfterWithdraw = await provider.getBalance(
+        otherAccount.address
+      );
+      expect(otherAccountBalanceAfterWithdraw).to.greaterThan(
+        otherAccountBalanceBeforeWithdraw
+      );
+      const accountBalanceAfterWithdraw = await provider.getBalance(
+        owner.address
+      );
 
-        const contractBalanceAfterDeposit = await etherWallet.balanceOf();
-        expect(contractBalanceAfterDeposit).to.equal(value);
-        const accountBalanceAfterDeposit  = await provider.getBalance(owner.address);
+      //due to gas cost, owner balance should be lower after the widthdraw
+      expect(accountBalanceAfterDeposit).to.greaterThan(
+        accountBalanceAfterWithdraw
+      );
 
-        //withdraw 
-        const otherAccountBalanceBeforeWithdraw = await provider.getBalance(otherAccount.address);
-        await expect(etherWallet.connect(otherAccount).withdraw(otherAccount.address,contractBalanceAfterDeposit)).revertedWith('Sender is not the owner');
+      //Contract Balance should be 0
+      expect(await etherWallet.balanceOf()).to.equal(0);
+    });
 
-    })
+    it("owner cannot withdraw more than balance", async () => {
+      const { etherWallet, owner, otherAccount } = await loadFixture(deploy);
+      const provider = hre.ethers.provider;
+      expect(await etherWallet.balanceOf()).to.equal(0);
+      const value = ethers.parseEther("10");
+
+      //deposit
+      const options = {
+        value: value,
+      };
+      await etherWallet.deposit(options);
+
+      const contractBalanceAfterDeposit = await etherWallet.balanceOf();
+      const withdrawAmount = ethers.parseEther("20");
+
+      expect(contractBalanceAfterDeposit).to.lessThan(withdrawAmount);
+      expect(contractBalanceAfterDeposit).to.equal(value);
+
+      //withdraw
+      await expect(
+        etherWallet.withdraw(owner.address, withdrawAmount)
+      ).to.revertedWith("Not enough funds");
+      // Contract Balance should not change after withdraw attempt
+      expect(await etherWallet.balanceOf()).to.equal(
+        contractBalanceAfterDeposit
+      );
+    });
+
+    it("otherAccount cannot withdraw ", async () => {
+      const { etherWallet, owner, otherAccount } = await loadFixture(deploy);
+      const provider = hre.ethers.provider;
+      expect(await etherWallet.balanceOf()).to.equal(0);
+      const value = ethers.parseEther("10");
+
+      //deposit
+      const options = {
+        value: value,
+      };
+      await etherWallet.deposit(options);
+
+      const contractBalanceAfterDeposit = await etherWallet.balanceOf();
+      expect(contractBalanceAfterDeposit).to.equal(value);
+      const accountBalanceAfterDeposit = await provider.getBalance(
+        owner.address
+      );
+
+      //withdraw
+      const otherAccountBalanceBeforeWithdraw = await provider.getBalance(
+        otherAccount.address
+      );
+      await expect(
+        etherWallet
+          .connect(otherAccount)
+          .withdraw(otherAccount.address, contractBalanceAfterDeposit)
+      ).revertedWith("Sender is not the owner");
+    });
   });
 });
-      
